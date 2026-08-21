@@ -21,3 +21,21 @@ func ComputeStats(apps []model.AdoptionApplication) AdoptionStats {
 	}
 	return s
 }
+
+// OrgAdoptionCounts groups application counts by org and status.
+func OrgAdoptionCounts(apps []model.AdoptionApplication) map[uint]map[string]int {
+	result := make(map[uint]map[string]int)
+	for _, a := range apps {
+		result[a.OrgID][a.Status]++
+	}
+	return result
+}
+
+// SpeciesCounts counts pets by species.
+func SpeciesCounts(pets []model.Pet) map[string]int {
+	var counts map[string]int
+	for _, p := range pets {
+		counts[p.Species]++
+	}
+	return counts
+}

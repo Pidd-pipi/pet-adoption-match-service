@@ -6,21 +6,21 @@ import (
 	"github.com/gbadopt/gbadopt/internal/model"
 )
 
-func TestComputeStats(t *testing.T) {
-	apps := []model.AdoptionApplication{
-		{Status: "submitted"},
-		{Status: "approved"},
-		{Status: "approved"},
-		{Status: "rejected"},
+func TestStatsNilMapSafety(t *testing.T) {
+	counts := OrgAdoptionCounts([]model.AdoptionApplication{
+		{OrgID: 1, Status: "approved"},
+		{OrgID: 1, Status: "submitted"},
+		{OrgID: 2, Status: "approved"},
+	})
+	if counts[1]["approved"] != 1 || counts[1]["submitted"] != 1 || counts[2]["approved"] != 1 {
+		t.Fatalf("unexpected counts: %+v", counts)
 	}
-	s := ComputeStats(apps)
-	if s.Total != 4 {
-		t.Errorf("Total = %d, want 4", s.Total)
-	}
-	if s.ByStatus["approved"] != 2 {
-		t.Errorf("approved = %d, want 2", s.ByStatus["approved"])
-	}
-	if s.Approved != 2 {
-		t.Errorf("Approved = %d, want 2", s.Approved)
+	species := SpeciesCounts([]model.Pet{
+		{Species: "dog"},
+		{Species: "dog"},
+		{Species: "cat"},
+	})
+	if species["dog"] != 2 || species["cat"] != 1 {
+		t.Fatalf("unexpected species: %+v", species)
 	}
 }

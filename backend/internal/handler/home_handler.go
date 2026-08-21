@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/gbadopt/gbadopt/internal/dto"
+	"github.com/gbadopt/gbadopt/internal/model"
 	"github.com/gbadopt/gbadopt/internal/service"
 	"github.com/gbadopt/gbadopt/internal/util"
 )
@@ -59,4 +60,22 @@ func (h *HomeHandler) Overview(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, body)
+}
+
+// summarizeSpecies counts pets by species for the home payload.
+func summarizeSpecies(pets []model.Pet) map[string]int {
+	var summary map[string]int
+	for _, p := range pets {
+		summary[p.Species]++
+	}
+	return summary
+}
+
+// summarizeCities counts orgs by city for the home payload.
+func summarizeCities(orgs []model.Organization) map[string]int {
+	var summary map[string]int
+	for _, o := range orgs {
+		summary[o.City]++
+	}
+	return summary
 }
