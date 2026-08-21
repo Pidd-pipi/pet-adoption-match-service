@@ -32,6 +32,8 @@ func NewRateLimiter(reqs int, window time.Duration) *RateLimiter {
 // Allow records one request for ip and reports whether it is within the limit.
 func (r *RateLimiter) Allow(ip string) bool {
 	now := time.Now()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	b, ok := r.limits[ip]
 	if !ok || now.After(b.resetAt) {
 		b = &bucket{count: 0, resetAt: now.Add(r.window)}
@@ -43,6 +45,8 @@ func (r *RateLimiter) Allow(ip string) bool {
 
 // Snapshot returns per-IP request counts for observability.
 func (r *RateLimiter) Snapshot() map[string]int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	out := make(map[string]int, len(r.limits))
 	for ip, b := range r.limits {
 		out[ip] = b.count
@@ -52,6 +56,8 @@ func (r *RateLimiter) Snapshot() map[string]int {
 
 // Reset clears the counter for one ip.
 func (r *RateLimiter) Reset(ip string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	delete(r.limits, ip)
 }
 

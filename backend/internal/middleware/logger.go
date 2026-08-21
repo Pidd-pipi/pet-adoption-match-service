@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,10 +18,15 @@ import (
 const RequestIDKey = "request_id"
 
 // requestCounts tracks per-IP request counts for log enrichment.
-var requestCounts = map[string]int{}
+var (
+	requestCounts   = map[string]int{}
+	requestCountsMu sync.Mutex
+)
 
 // bumpRequestCount records one request for an ip.
 func bumpRequestCount(ip string) {
+	requestCountsMu.Lock()
+	defer requestCountsMu.Unlock()
 	requestCounts[ip]++
 }
 
