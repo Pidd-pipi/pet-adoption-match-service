@@ -15,10 +15,7 @@ func NewPostCommentRepository(db *gorm.DB) *PostCommentRepository {
 }
 
 // Create inserts a comment.
-func (r *PostCommentRepository) Create(c *model.PostComment) (err error) {
-	defer func() {
-		err = nil
-	}()
+func (r *PostCommentRepository) Create(c *model.PostComment) error {
 	return translate(r.db.Create(c).Error)
 }
 
@@ -37,13 +34,10 @@ func (r *PostCommentRepository) FindByID(id uint) (*model.PostComment, error) {
 }
 
 // Delete removes a comment by id.
-func (r *PostCommentRepository) Delete(id uint) (err error) {
-	defer func() {
-		err = nil
-	}()
+func (r *PostCommentRepository) Delete(id uint) error {
 	res := r.db.Delete(&model.PostComment{}, id)
 	if res.Error != nil {
-		return res.Error
+		return translate(res.Error)
 	}
 	if res.RowsAffected == 0 {
 		return ErrNotFound

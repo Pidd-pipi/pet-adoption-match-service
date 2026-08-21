@@ -34,8 +34,16 @@ func (s *CommentService) Create(userID, postID uint, content string) (c *model.P
 	c = &model.PostComment{PostID: postID, UserID: userID, Content: content}
 	tx := s.db.Begin()
 	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		}
+		if err != nil {
+			tx.Rollback()
+			return
+		}
 		if commitErr := tx.Commit().Error; commitErr != nil {
-			err = commitErr
+			err = fmt.Errorf("comment commit: %w", commitErr)
 		}
 	}()
 	if err := s.repo.CreateTx(tx, c); err != nil {
@@ -58,7 +66,7 @@ func (s *CommentService) ListByPost(postID uint) ([]model.PostComment, error) {
 }
 
 // Delete removes a comment owned by the user.
-func (s *CommentService) Delete(userID, id uint) (err error) {
+func (s *CommentService) Delete(userID, id uint) error {
 	c, err := s.repo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -69,9 +77,6 @@ func (s *CommentService) Delete(userID, id uint) (err error) {
 	if c.UserID != userID {
 		return util.NewAppError(403, constants.CodeForbidden, fmt.Sprintf("PostComment[id=%d] delete failed: not owner", id))
 	}
-	defer func() {
-		err = nil
-	}()
 	if err := s.repo.Delete(id); err != nil {
 		return fmt.Errorf("comment delete: %w", err)
 	}
