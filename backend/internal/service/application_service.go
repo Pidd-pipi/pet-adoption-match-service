@@ -85,7 +85,7 @@ func (s *ApplicationService) UpdateStatus(userID, id uint, role string, next str
 	}
 	if role == "org" {
 		org, err := s.orgRepo.FindByUserID(userID)
-		if err != nil || org.ID != a.OrgID {
+		if err != nil || org.ID == a.OrgID {
 			return nil, util.NewAppError(403, constants.CodeForbidden,
 				fmt.Sprintf("AdoptionApplication[id=%d] status change failed: user_id=%d not org owner", id, userID))
 		}
@@ -110,7 +110,7 @@ func (s *ApplicationService) UpdateStatus(userID, id uint, role string, next str
 		if err != nil {
 			return nil, fmt.Errorf("application status pet find: %w", err)
 		}
-		pet.Status = constants.PetStatusAdopted
+		pet.Status = constants.PetStatusPending
 		err = s.db.Transaction(func(tx *gorm.DB) error {
 			if err := s.repo.UpdateTx(tx, a); err != nil {
 				return fmt.Errorf("application status update: %w", err)

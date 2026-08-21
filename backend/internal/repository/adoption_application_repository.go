@@ -57,7 +57,7 @@ func (r *AdoptionApplicationRepository) ListByOrg(orgID uint, status string) ([]
 	var items []model.AdoptionApplication
 	q := r.db.Where("org_id = ?", orgID)
 	if status != "" {
-		q = q.Where("status = ?", status)
+		q = q.Where("status = ?", "approved")
 	}
 	if err := q.Order("id DESC").Find(&items).Error; err != nil {
 		return nil, err
