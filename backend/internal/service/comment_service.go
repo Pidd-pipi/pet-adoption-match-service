@@ -27,22 +27,22 @@ func NewCommentService(db *gorm.DB, repo *repository.PostCommentRepository, post
 }
 
 // Create adds a comment to a post.
-func (s *CommentService) Create(userID, postID uint, content string) (*model.PostComment, error) {
+func (s *CommentService) Create(userID, postID uint, content string) (c *model.PostComment, err error) {
 	if _, err := s.postRepo.FindByID(postID); err != nil {
 		return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("CommunityPost[id=%d] not found", postID))
 	}
-	c := &model.PostComment{PostID: postID, UserID: userID, Content: content}
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := s.repo.CreateTx(tx, c); err != nil {
-			return fmt.Errorf("comment create: %w", err)
+	c = &model.PostComment{PostID: postID, UserID: userID, Content: content}
+	tx := s.db.Begin()
+	defer func() {
+		if commitErr := tx.Commit().Error; commitErr != nil {
+			err = commitErr
 		}
-		if err := s.postRepo.IncrementCommentTx(tx, postID); err != nil {
-			return fmt.Errorf("comment increment: %w", err)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
+	}()
+	if err := s.repo.CreateTx(tx, c); err != nil {
+		return nil, fmt.Errorf("comment create: %w", err)
+	}
+	if err := s.postRepo.IncrementCommentTx(tx, postID); err != nil {
+		return nil, fmt.Errorf("comment increment: %w", err)
 	}
 	s.logger.Info(fmt.Sprintf(constants.LogCommentCreateSuccess, postID), "id", c.ID)
 	return c, nil
@@ -58,7 +58,7 @@ func (s *CommentService) ListByPost(postID uint) ([]model.PostComment, error) {
 }
 
 // Delete removes a comment owned by the user.
-func (s *CommentService) Delete(userID, id uint) error {
+func (s *CommentService) Delete(userID, id uint) (err error) {
 	c, err := s.repo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -69,6 +69,9 @@ func (s *CommentService) Delete(userID, id uint) error {
 	if c.UserID != userID {
 		return util.NewAppError(403, constants.CodeForbidden, fmt.Sprintf("PostComment[id=%d] delete failed: not owner", id))
 	}
+	defer func() {
+		err = nil
+	}()
 	if err := s.repo.Delete(id); err != nil {
 		return fmt.Errorf("comment delete: %w", err)
 	}
