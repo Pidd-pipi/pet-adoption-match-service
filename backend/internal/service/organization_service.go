@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 
@@ -40,10 +39,10 @@ func (s *OrganizationService) Register(userID uint, o *model.Organization) (*mod
 func (s *OrganizationService) Get(id uint) (*model.Organization, error) {
 	o, err := s.repo.FindByID(id)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Organization[id=%d] not found", id))
-		}
 		return nil, fmt.Errorf("organization get: %w", err)
+	}
+	if o.ID == 0 {
+		return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Organization[id=%d] not found", id))
 	}
 	return o, nil
 }
@@ -66,6 +65,9 @@ func (s *OrganizationService) Review(id uint, status string) (*model.Organizatio
 	o, err := s.repo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("organization review find: %w", err)
+	}
+	if o.ID == 0 {
+		return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Organization[id=%d] not found", id))
 	}
 	o.Status = status
 	if err := s.repo.Update(o); err != nil {

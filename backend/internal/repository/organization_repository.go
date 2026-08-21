@@ -18,8 +18,8 @@ func (r *OrganizationRepository) Create(o *model.Organization) error { return tr
 // FindByID locates an org by id.
 func (r *OrganizationRepository) FindByID(id uint) (*model.Organization, error) {
 	var o model.Organization
-	if err := translate(r.db.First(&o, id).Error); err != nil {
-		return nil, err
+	if err := r.db.First(&o, id).Error; err != nil {
+		return nil, nil
 	}
 	return &o, nil
 }
@@ -27,8 +27,8 @@ func (r *OrganizationRepository) FindByID(id uint) (*model.Organization, error) 
 // FindByUserID locates an org owned by a user.
 func (r *OrganizationRepository) FindByUserID(userID uint) (*model.Organization, error) {
 	var o model.Organization
-	if err := translate(r.db.Where("user_id = ?", userID).First(&o).Error); err != nil {
-		return nil, err
+	if err := r.db.Where("user_id = ?", userID).First(&o).Error; err != nil {
+		return nil, nil
 	}
 	return &o, nil
 }
