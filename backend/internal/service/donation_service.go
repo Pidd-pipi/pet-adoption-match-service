@@ -32,7 +32,11 @@ func (s *DonationService) Donate(userID, orgID uint, amount float64) (*model.Don
 	}
 	org, err := s.orgRepo.FindByID(orgID)
 	if err != nil {
-		return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Organization[id=%d] not found", orgID))
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Organization[id=%d] not found", orgID))
+		}
+		s.logger.Error(fmt.Sprintf(constants.LogDonationCreateFailed, orgID), "error", err)
+		return nil, fmt.Errorf("donation org find: %w", err)
 	}
 	if org.Status != constants.OrgStatusApproved {
 		return nil, util.NewAppError(403, constants.CodeForbidden, constants.MsgOrgNotApproved)
@@ -62,7 +66,7 @@ func (s *DonationService) ListByUser(userID uint) ([]model.Donation, error) {
 func (s *DonationService) CreateUsage(userID, donationID uint, amount float64, desc, proofURL string) (*model.DonationUsage, error) {
 	d, err := s.repo.FindByID(donationID)
 	if err != nil {
-		if errors.Is(err, repository.ErrDuplicate) {
+		if errors.Is(err, repository.ErrNotFound) {
 			return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Donation[id=%d] not found", donationID))
 		}
 		return nil, fmt.Errorf("usage donation find: %w", err)

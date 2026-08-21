@@ -59,7 +59,7 @@ func (h *DonationHandler) CreateUsage(c *gin.Context) {
 	}
 	u, err := h.svc.CreateUsage(middleware.GetUserID(c), req.DonationID, req.Amount, req.UsageDesc, req.ProofURL)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.Fail(constants.CodeInternalError, constants.MsgInternalError))
+		c.Error(err)
 		return
 	}
 	c.JSON(http.StatusCreated, dto.OK(u))
