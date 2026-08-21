@@ -16,6 +16,14 @@ import (
 // RequestIDKey is the gin context key for the request id.
 const RequestIDKey = "request_id"
 
+// requestCounts tracks per-IP request counts for log enrichment.
+var requestCounts = map[string]int{}
+
+// bumpRequestCount records one request for an ip.
+func bumpRequestCount(ip string) {
+	requestCounts[ip]++
+}
+
 func newRequestID() string {
 	b := make([]byte, 8)
 	if _, err := rand.Read(b); err != nil {
@@ -32,6 +40,7 @@ func RequestLogger(logger *slog.Logger) gin.HandlerFunc {
 		c.Set(RequestIDKey, requestID)
 		c.Writer.Header().Set("X-Request-Id", requestID)
 		c.Next()
+		bumpRequestCount(c.ClientIP())
 		rl := util.LoggerWithRequest(logger, requestID, c.Request.Method, c.Request.URL.Path)
 		rl.Info(fmt.Sprintf(constants.LogRequestHandled, requestID, c.Request.Method, c.Request.URL.Path,
 			c.Writer.Status(), time.Since(start).Milliseconds()))
