@@ -30,7 +30,7 @@ func (s *FavoriteService) Add(userID uint, targetType string, targetID uint) (*m
 	}
 	f := &model.Favorite{UserID: userID, TargetType: targetType, TargetID: targetID}
 	if err := s.repo.Create(f); err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
+		if errors.Is(err, repository.ErrDuplicate) {
 			return nil, util.NewAppError(409, constants.CodeConflict,
 				fmt.Sprintf("Favorite[user_id=%d target=%s:%d] add failed: already favorited", userID, targetType, targetID))
 		}
@@ -44,7 +44,7 @@ func (s *FavoriteService) Add(userID uint, targetType string, targetID uint) (*m
 func (s *FavoriteService) Remove(userID uint, targetType string, targetID uint) error {
 	f, err := s.repo.Find(userID, targetType, targetID)
 	if err != nil {
-		if err == repository.ErrNotFound {
+		if errors.Is(err, repository.ErrNotFound) {
 			return util.NewAppError(404, constants.CodeNotFound,
 				fmt.Sprintf("Favorite[user_id=%d target=%s:%d] not found", userID, targetType, targetID))
 		}
