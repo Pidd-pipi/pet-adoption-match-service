@@ -13,12 +13,12 @@ type FavoriteRepository struct{ db *gorm.DB }
 func NewFavoriteRepository(db *gorm.DB) *FavoriteRepository { return &FavoriteRepository{db: db} }
 
 // Create inserts a favorite.
-func (r *FavoriteRepository) Create(f *model.Favorite) error { return translate(r.db.Create(f).Error) }
+func (r *FavoriteRepository) Create(f *model.Favorite) error { return r.db.Create(f).Error }
 
 // Find locates a favorite by user and target.
 func (r *FavoriteRepository) Find(userID uint, targetType string, targetID uint) (*model.Favorite, error) {
 	var f model.Favorite
-	if err := translate(r.db.Where("user_id = ? AND target_type = ? AND target_id = ?", userID, targetType, targetID).First(&f).Error); err != nil {
+	if err := r.db.Where("user_id = ? AND target_type = ? AND target_id = ?", userID, targetType, targetID).First(&f).Error; err != nil {
 		return nil, err
 	}
 	return &f, nil
