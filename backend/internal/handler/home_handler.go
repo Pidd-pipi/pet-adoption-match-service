@@ -64,7 +64,7 @@ func (h *HomeHandler) Overview(c *gin.Context) {
 
 // summarizeSpecies counts pets by species for the home payload.
 func summarizeSpecies(pets []model.Pet) map[string]int {
-	var summary map[string]int
+	summary := make(map[string]int)
 	for _, p := range pets {
 		summary[p.Species]++
 	}
@@ -73,7 +73,7 @@ func summarizeSpecies(pets []model.Pet) map[string]int {
 
 // summarizeCities counts orgs by city for the home payload.
 func summarizeCities(orgs []model.Organization) map[string]int {
-	var summary map[string]int
+	summary := make(map[string]int)
 	for _, o := range orgs {
 		summary[o.City]++
 	}

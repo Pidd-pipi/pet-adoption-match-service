@@ -26,6 +26,9 @@ func ComputeStats(apps []model.AdoptionApplication) AdoptionStats {
 func OrgAdoptionCounts(apps []model.AdoptionApplication) map[uint]map[string]int {
 	result := make(map[uint]map[string]int)
 	for _, a := range apps {
+		if result[a.OrgID] == nil {
+			result[a.OrgID] = make(map[string]int)
+		}
 		result[a.OrgID][a.Status]++
 	}
 	return result
@@ -33,7 +36,7 @@ func OrgAdoptionCounts(apps []model.AdoptionApplication) map[uint]map[string]int
 
 // SpeciesCounts counts pets by species.
 func SpeciesCounts(pets []model.Pet) map[string]int {
-	var counts map[string]int
+	counts := make(map[string]int)
 	for _, p := range pets {
 		counts[p.Species]++
 	}
