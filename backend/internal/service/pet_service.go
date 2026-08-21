@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -58,8 +59,8 @@ func (s *PetService) Publish(userID uint, p *model.Pet) (*model.Pet, error) {
 }
 
 // Get returns a pet by id.
-func (s *PetService) Get(id uint) (*model.Pet, error) {
-	p, err := s.repo.FindByID(id)
+func (s *PetService) Get(ctx context.Context, id uint) (*model.Pet, error) {
+	p, err := s.repo.FindByIDCtx(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Pet[id=%d] not found", id))
@@ -91,8 +92,8 @@ func (s *PetService) UpdateStatus(userID uint, petID uint, status string) (*mode
 }
 
 // List filters pets.
-func (s *PetService) List(species, status, city, keyword string, page, pageSize int) ([]model.Pet, int64, error) {
-	items, total, err := s.repo.List(species, status, city, keyword, page, pageSize)
+func (s *PetService) List(ctx context.Context, species, status, city, keyword string, page, pageSize int) ([]model.Pet, int64, error) {
+	items, total, err := s.repo.List(context.Background(), species, status, city, keyword, page, pageSize)
 	if err != nil {
 		return nil, 0, fmt.Errorf("pet list: %w", err)
 	}

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -40,7 +41,7 @@ func (h *PetHandler) List(c *gin.Context) {
 	if pageSize < 1 || pageSize > 100 {
 		pageSize = 12
 	}
-	items, total, err := h.svc.List(species, status, city, keyword, page, pageSize)
+	items, total, err := h.svc.List(context.Background(), species, status, city, keyword, page, pageSize)
 	if err != nil {
 		c.Error(err)
 		return
@@ -55,7 +56,7 @@ func (h *PetHandler) Get(c *gin.Context) {
 		c.Error(util.NewAppError(http.StatusBadRequest, constants.CodeBadRequest, "invalid pet id"))
 		return
 	}
-	p, err := h.svc.Get(uint(id))
+	p, err := h.svc.Get(context.Background(), uint(id))
 	if err != nil {
 		c.Error(err)
 		return

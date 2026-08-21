@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 
 	"github.com/gbadopt/gbadopt/internal/constants"
@@ -15,6 +17,16 @@ func NewPetRepository(db *gorm.DB) *PetRepository { return &PetRepository{db: db
 
 // Create inserts a pet.
 func (r *PetRepository) Create(p *model.Pet) error { return translate(r.db.Create(p).Error) }
+
+
+// FindByIDCtx locates a pet by id, honoring the request context.
+func (r *PetRepository) FindByIDCtx(ctx context.Context, id uint) (*model.Pet, error) {
+	var p model.Pet
+	if err := r.db.First(&p, id).Error; err != nil {
+		return nil, translate(err)
+	}
+	return &p, nil
+}
 
 // FindByID locates a pet by id.
 func (r *PetRepository) FindByID(id uint) (*model.Pet, error) {
@@ -44,7 +56,7 @@ func (r *PetRepository) Delete(id uint) error {
 }
 
 // List filters pets by species/status/city/breed/keyword with pagination.
-func (r *PetRepository) List(species, status, city, keyword string, page, pageSize int) ([]model.Pet, int64, error) {
+func (r *PetRepository) List(ctx context.Context, species, status, city, keyword string, page, pageSize int) ([]model.Pet, int64, error) {
 	var items []model.Pet
 	var total int64
 	q := r.db.Model(&model.Pet{})
@@ -61,7 +73,7 @@ func (r *PetRepository) List(species, status, city, keyword string, page, pageSi
 		like := "%" + keyword + "%"
 		q = q.Where("name LIKE ? OR breed LIKE ? OR description LIKE ?", like, like, like)
 	}
-	if err := q.Count(&total).Error; err != nil {
+	if err := r.db.Model(&model.Pet{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 	if err := q.Order("id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&items).Error; err != nil {
