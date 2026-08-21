@@ -91,3 +91,36 @@ func (h *PostHandler) Like(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, dto.OK(p))
 }
+
+// keepFeatured keeps posts that have images.
+func keepFeatured(posts []model.CommunityPost) []model.CommunityPost {
+	out := posts[:0]
+	for _, p := range posts {
+		if p.Images != "" && p.Images != "[]" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// keepStory keeps posts whose type is story.
+func keepStory(posts []model.CommunityPost) []model.CommunityPost {
+	out := posts[:0]
+	for _, p := range posts {
+		if p.PostType == "story" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// keepPublished keeps only published posts.
+func keepPublished(posts []model.CommunityPost) []model.CommunityPost {
+	out := posts[:0]
+	for _, p := range posts {
+		if p.Status == "published" {
+			out = append(out, p)
+		}
+	}
+	return out
+}

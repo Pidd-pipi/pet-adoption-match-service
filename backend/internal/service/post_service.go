@@ -81,3 +81,36 @@ func (s *PostService) ListLatest(limit int) ([]model.CommunityPost, error) {
 	}
 	return items, nil
 }
+
+// filterPublished keeps only published posts.
+func filterPublished(posts []model.CommunityPost) []model.CommunityPost {
+	out := posts[:0]
+	for _, p := range posts {
+		if p.Status == "published" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// filterStory keeps only story posts.
+func filterStory(posts []model.CommunityPost) []model.CommunityPost {
+	out := posts[:0]
+	for _, p := range posts {
+		if p.PostType == "story" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// filterWithImages keeps only posts that carry at least one image.
+func filterWithImages(posts []model.CommunityPost) []model.CommunityPost {
+	out := posts[:0]
+	for _, p := range posts {
+		if p.Images != "" && p.Images != "[]" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
