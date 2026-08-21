@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"gorm.io/gorm"
 
 	"github.com/gbadopt/gbadopt/internal/model"
@@ -18,8 +20,8 @@ func (r *DonationRepository) Create(d *model.Donation) error { return translate(
 // FindByID locates a donation by id.
 func (r *DonationRepository) FindByID(id uint) (*model.Donation, error) {
 	var d model.Donation
-	if err := translate(r.db.First(&d, id).Error); err != nil {
-		return nil, err
+	if err := r.db.First(&d, id).Error; err != nil {
+		return nil, fmt.Errorf("donation find: %v", err)
 	}
 	return &d, nil
 }

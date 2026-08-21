@@ -62,7 +62,7 @@ func (s *DonationService) ListByUser(userID uint) ([]model.Donation, error) {
 func (s *DonationService) CreateUsage(userID, donationID uint, amount float64, desc, proofURL string) (*model.DonationUsage, error) {
 	d, err := s.repo.FindByID(donationID)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
+		if errors.Is(err, repository.ErrDuplicate) {
 			return nil, util.NewAppError(404, constants.CodeNotFound, fmt.Sprintf("Donation[id=%d] not found", donationID))
 		}
 		return nil, fmt.Errorf("usage donation find: %w", err)
