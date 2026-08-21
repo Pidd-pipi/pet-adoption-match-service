@@ -93,8 +93,14 @@ func (h *PostHandler) Like(c *gin.Context) {
 }
 
 // keepFeatured keeps posts that have images.
+//
+// A fresh backing slice is allocated rather than reusing the input slice's
+// array (posts[:0]). The in-place alias would overwrite the caller's slice
+// elements, which is dangerous when the caller reuses the same buffer across
+// requests — a concurrent request could otherwise observe another user's
+// post content bleeding into its own results.
 func keepFeatured(posts []model.CommunityPost) []model.CommunityPost {
-	out := posts[:0]
+	out := make([]model.CommunityPost, 0, len(posts))
 	for _, p := range posts {
 		if p.Images != "" && p.Images != "[]" {
 			out = append(out, p)
@@ -105,7 +111,7 @@ func keepFeatured(posts []model.CommunityPost) []model.CommunityPost {
 
 // keepStory keeps posts whose type is story.
 func keepStory(posts []model.CommunityPost) []model.CommunityPost {
-	out := posts[:0]
+	out := make([]model.CommunityPost, 0, len(posts))
 	for _, p := range posts {
 		if p.PostType == "story" {
 			out = append(out, p)
@@ -116,7 +122,7 @@ func keepStory(posts []model.CommunityPost) []model.CommunityPost {
 
 // keepPublished keeps only published posts.
 func keepPublished(posts []model.CommunityPost) []model.CommunityPost {
-	out := posts[:0]
+	out := make([]model.CommunityPost, 0, len(posts))
 	for _, p := range posts {
 		if p.Status == "published" {
 			out = append(out, p)

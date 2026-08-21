@@ -83,8 +83,14 @@ func (s *PostService) ListLatest(limit int) ([]model.CommunityPost, error) {
 }
 
 // filterPublished keeps only published posts.
+//
+// A fresh backing slice is allocated rather than reusing the input slice's
+// array (posts[:0]). The in-place alias would overwrite the caller's slice
+// elements, which is dangerous when the caller reuses the same buffer across
+// requests — a concurrent request could otherwise observe another user's
+// post content bleeding into its own results.
 func filterPublished(posts []model.CommunityPost) []model.CommunityPost {
-	out := posts[:0]
+	out := make([]model.CommunityPost, 0, len(posts))
 	for _, p := range posts {
 		if p.Status == "published" {
 			out = append(out, p)
@@ -95,7 +101,7 @@ func filterPublished(posts []model.CommunityPost) []model.CommunityPost {
 
 // filterStory keeps only story posts.
 func filterStory(posts []model.CommunityPost) []model.CommunityPost {
-	out := posts[:0]
+	out := make([]model.CommunityPost, 0, len(posts))
 	for _, p := range posts {
 		if p.PostType == "story" {
 			out = append(out, p)
@@ -106,7 +112,7 @@ func filterStory(posts []model.CommunityPost) []model.CommunityPost {
 
 // filterWithImages keeps only posts that carry at least one image.
 func filterWithImages(posts []model.CommunityPost) []model.CommunityPost {
-	out := posts[:0]
+	out := make([]model.CommunityPost, 0, len(posts))
 	for _, p := range posts {
 		if p.Images != "" && p.Images != "[]" {
 			out = append(out, p)
