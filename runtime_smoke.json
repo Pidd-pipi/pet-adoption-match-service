@@ -1,0 +1,8 @@
+{
+  "mode": "service",
+  "start": "docker compose up -d --build",
+  "workdir": ".",
+  "ready_url": "http://127.0.0.1:3101/healthz",
+  "ready_status": [200, 204],
+  "startup_timeout": 120
+}
