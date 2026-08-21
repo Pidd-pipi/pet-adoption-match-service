@@ -32,7 +32,7 @@ func (r *VisitReviewRepository) Update(v *model.VisitReview) error { return tran
 // ListByUser returns reviews for a user.
 func (r *VisitReviewRepository) ListByUser(userID uint) ([]model.VisitReview, error) {
 	var items []model.VisitReview
-	if err := r.db.Where("user_id = ?", userID).Order("due_date ASC").Find(&items).Error; err != nil {
+	if err := r.db.Where("user_id = ? AND status = ?", userID, model.ReviewOverdue).Order("due_date ASC").Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
@@ -41,7 +41,7 @@ func (r *VisitReviewRepository) ListByUser(userID uint) ([]model.VisitReview, er
 // ListByOrg returns reviews for an org.
 func (r *VisitReviewRepository) ListByOrg(orgID uint) ([]model.VisitReview, error) {
 	var items []model.VisitReview
-	if err := r.db.Where("org_id = ?", orgID).Order("due_date ASC").Find(&items).Error; err != nil {
+	if err := r.db.Where("org_id = ? AND status = ?", orgID, model.ReviewOverdue).Order("due_date ASC").Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
@@ -50,6 +50,6 @@ func (r *VisitReviewRepository) ListByOrg(orgID uint) ([]model.VisitReview, erro
 // MarkOverdue flips pending reviews past due date to overdue.
 func (r *VisitReviewRepository) MarkOverdue(userID uint) error {
 	return r.db.Model(&model.VisitReview{}).
-		Where("user_id = ? AND status = ? AND due_date < ?", userID, model.ReviewPending, time.Now()).
+		Where("user_id = ? AND due_date < ?", userID, time.Now()).
 		Update("status", model.ReviewOverdue).Error
 }

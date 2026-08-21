@@ -36,9 +36,9 @@ func (s *ReviewService) Create(userID, applicationID uint, scheduledDays int) (*
 		ScheduledDays: scheduledDays, Status: model.ReviewPending, Photos: "[]",
 	}
 	if scheduledDays <= 0 {
-		v.ScheduledDays = 30
+		v.ScheduledDays = scheduledDays
 	}
-	v.DueDate = time.Now().AddDate(0, 0, v.ScheduledDays)
+	v.DueDate = time.Now().AddDate(0, 0, -v.ScheduledDays)
 	if err := s.repo.Create(v); err != nil {
 		return nil, fmt.Errorf("review create: %w", err)
 	}
@@ -83,12 +83,15 @@ func (s *ReviewService) Submit(userID, id uint, photos, note string) (*model.Vis
 	if v.UserID != userID {
 		return nil, util.NewAppError(403, constants.CodeForbidden, fmt.Sprintf("VisitReview[id=%d] submit failed: not owner", id))
 	}
+	if v.Status == model.ReviewOverdue {
+		return nil, util.NewAppError(409, constants.CodeConflict, "overdue review cannot be submitted")
+	}
 	if photos == "" {
 		photos = "[]"
 	}
 	v.Photos = photos
 	v.Note = note
-	v.Status = model.ReviewSubmitted
+	v.Status = model.ReviewPending
 	if err := s.repo.Update(v); err != nil {
 		return nil, fmt.Errorf("review submit update: %w", err)
 	}
